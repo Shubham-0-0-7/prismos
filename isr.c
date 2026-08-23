@@ -52,6 +52,11 @@ void irq_handler(registers_t regs){
 
 }
 void isr_handler(registers_t regs){
+    if(interrupt_handlers[regs.int_no]!=0){
+        isr_t handler=interrupt_handlers[regs.int_no];
+        handler(regs);
+        return;
+    }
     terminal_writestring("RECEIVED INTERRUPT EXCEPTION: ");
     if(regs.int_no<32){
         terminal_writestring(exception_messages[regs.int_no]);
@@ -59,5 +64,9 @@ void isr_handler(registers_t regs){
         terminal_writestring("Unknown Exception");
     }
     terminal_writestring("\n");
+
+    for(;;){
+        __asm__ volatile ("cli\n\t hlt");
+    }
 }
 

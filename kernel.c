@@ -6,6 +6,7 @@
 #include "mem.h"
 #include "shell.h"
 #include "string.h"
+#include "paging.h"
 
 void main(){
     terminal_initialize();
@@ -16,6 +17,8 @@ void main(){
     pic_remap();
     init_keyboard();
     init_timer(100);
+
+    init_paging();
     __asm__ volatile("sti");
     // terminal_writestring("waiting 3 secs...");
     // sleep_ms(3000);
@@ -25,6 +28,5 @@ void main(){
     // memcpy(buf, "dynamic memory allocation via kmalloc works!\n", sizeof("dynamic memory allocation via kmalloc works!\n"));
     // terminal_writestring(buf);
     // terminal_writestring("type something below... \n");
-    
     shell_init();
 }
