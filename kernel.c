@@ -8,6 +8,7 @@
 #include "string.h"
 #include "paging.h"
 #include "pmm.h"
+#include "kheap.h"
 
 void main(){
     terminal_initialize();
@@ -21,6 +22,7 @@ void main(){
     init_pmm(128*128*1024);
 
     init_paging();
+    init_kheap();
     __asm__ volatile("sti");
     // terminal_writestring("waiting 3 secs...");
     // sleep_ms(3000);

@@ -1,4 +1,5 @@
 #include "shell.h"
+#include "kheap.h"
 #include "string.h"
 #include "terminal.h"
 #include "timer.h"
@@ -17,6 +18,8 @@ static void cmd_help(void){
     terminal_writestring("  help      - Show this help menu\n");
     terminal_writestring("  clear     - Clear the screen\n");
     terminal_writestring("  uptime    - Show system uptime in seconds\n");
+    terminal_writestring("  pmm       - Test Bitmap Page allocator & freeing\n");
+    terminal_writestring("  kheap      - Test dynamic heap (splitting, kfree and coalescing)\n");
     terminal_writestring("  pagefault - Trigger a CPU Page Fault Exception\n");
     terminal_writestring("  panic     - Trigger a Kernel Panic (Interrupt 0)\n");
     terminal_writestring("  reboot    - Restart the computer\n");
@@ -110,6 +113,44 @@ static void cmd_pmm(void){
 
 }
 
+static void cmd_kheap(void){
+    char buf[32];
+    terminal_writestring("Testing dynamic heap allocation\n");
+    char* a = (char*)kmalloc_dyn(32);
+    char* b = (char*)kmalloc_dyn(64);
+    char* c = (char*)kmalloc_dyn(128);
+
+    terminal_writestring("allocated block A (32 B) at: 0x");
+    itoa((uint32_t)a, buf, 16);
+    terminal_writestring(buf);
+    terminal_writestring("\n");
+
+    terminal_writestring("allocated block B (64 B) at: 0x");
+    itoa((uint32_t)b, buf, 16);
+    terminal_writestring(buf);
+    terminal_writestring("\n");
+
+    terminal_writestring("allocated block C (128 B) at: 0x");
+    itoa((uint32_t)c, buf, 16);
+    terminal_writestring(buf);
+    terminal_writestring("\n");
+
+    terminal_writestring("\nfreeing block b in the middle with kfree()...\n");
+    kfree(b);
+
+    char* d = (char*)kmalloc_dyn(40);
+    terminal_writestring("allocated block D (40 B) at: 0x");
+    itoa((uint32_t)d, buf, 16);
+    terminal_writestring(buf);
+    terminal_writestring("\n");
+    terminal_writestring("reused block B's slot!\n");
+
+    kfree(a);
+    kfree(c);
+    kfree(d);
+    terminal_writestring("cleaned up all the blocks with kfree() successfully!\n");
+}
+
 void shell_input(char* input){
     if(strlen(input)==0){
         terminal_writestring("neocipher27@prismOS ~$ ");
@@ -121,6 +162,7 @@ void shell_input(char* input){
     else if(strcmp(input, "alloc")==0) cmd_alloc();
     else if(strcmp(input, "pagefault")==0) cmd_pagefault();
     else if(strcmp(input, "pmm")==0) cmd_pmm();
+    else if(strcmp(input, "kheap")==0) cmd_kheap();
     else if(strcmp(input, "reboot")==0) cmd_reboot();
     else if(strcmp(input, "panic")==0) __asm__ volatile ("int $0");
     else{
