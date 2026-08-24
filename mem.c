@@ -1,4 +1,5 @@
 #include "mem.h"
+#include <stdint.h>
 static uint32_t free_mem_addr = 0x100000;
 
 void* memset(void* dest, int val, size_t count){
@@ -45,4 +46,8 @@ void* kmalloc_aligned(size_t size){
     void* ret = (void*)free_mem_addr;
     free_mem_addr += size;
     return ret;
+}
+
+uint32_t get_free_mem_addr(void){
+    return free_mem_addr;
 }
