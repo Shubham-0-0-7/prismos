@@ -4,6 +4,7 @@
 #include "timer.h"
 #include "ports.h"
 #include "mem.h"
+#include "pmm.h"
 #include <stdint.h>
 
 void shell_init(void){
@@ -71,6 +72,44 @@ static void cmd_alloc(void){
     terminal_writestring("\n");
 }
 
+static void cmd_pmm(void){
+    char buf[32];
+
+    terminal_writestring("Free physical RAM: ");
+    itoa(pmm_get_free_memory_kb(), buf,10);
+
+    terminal_writestring(buf);
+    terminal_writestring(" KB\n");
+
+    void* page1 = pmm_alloc_page();
+    terminal_writestring("Allocated 4KB Page at: 0x");
+    itoa((uint32_t)page1, buf, 16);
+    terminal_writestring(buf);
+    terminal_writestring("\n");
+    
+    void* page2 = pmm_alloc_page();
+    terminal_writestring("Allocated 4KB Page at: 0x");
+    itoa((uint32_t)page2, buf, 16);
+    terminal_writestring(buf);
+    terminal_writestring("\n");
+    
+    pmm_free_page(page1);
+    terminal_writestring("Freed page at: 0x");
+    itoa((uint32_t)page1, buf, 16);
+    terminal_writestring(buf);
+    terminal_writestring("\n");
+    
+    void* page3 = pmm_alloc_page();
+    terminal_writestring("Re-allocated page (reused): 0x");
+    itoa((uint32_t)page3, buf, 16);
+    terminal_writestring(buf);
+    terminal_writestring("\n");
+    
+    pmm_free_page(page2);
+    pmm_free_page(page3);
+
+}
+
 void shell_input(char* input){
     if(strlen(input)==0){
         terminal_writestring("neocipher27@prismOS ~$ ");
@@ -81,6 +120,7 @@ void shell_input(char* input){
     else if(strcmp(input, "uptime")==0) cmd_uptime();
     else if(strcmp(input, "alloc")==0) cmd_alloc();
     else if(strcmp(input, "pagefault")==0) cmd_pagefault();
+    else if(strcmp(input, "pmm")==0) cmd_pmm();
     else if(strcmp(input, "reboot")==0) cmd_reboot();
     else if(strcmp(input, "panic")==0) __asm__ volatile ("int $0");
     else{

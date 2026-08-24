@@ -18,8 +18,11 @@ kernel_entry.o: kernel_entry.asm
 kernel.o: kernel.c
 	$(CC) $(CFLAGS) $< -o $@
 
-kernel.bin: kernel_entry.o kernel.o terminal.o ports.o idt.o isr.o interrupt.o pic.o keyboard.o timer.o mem.o string.o shell.o paging.o
+kernel.bin: kernel_entry.o kernel.o terminal.o ports.o idt.o isr.o interrupt.o pic.o keyboard.o timer.o mem.o string.o shell.o paging.o pmm.o
 	$(LD) -o $@ -Ttext 0x1000 $^ --oformat binary
+
+pmm.o: pmm.c
+	$(CC) $(CFLAGS) $< -o $@
 
 paging.o: paging.c
 	$(CC) $(CFLAGS) $< -o $@

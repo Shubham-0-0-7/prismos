@@ -7,6 +7,7 @@
 #include "shell.h"
 #include "string.h"
 #include "paging.h"
+#include "pmm.h"
 
 void main(){
     terminal_initialize();
@@ -17,6 +18,7 @@ void main(){
     pic_remap();
     init_keyboard();
     init_timer(100);
+    init_pmm(128*128*1024);
 
     init_paging();
     __asm__ volatile("sti");
