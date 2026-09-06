@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include "task.h"
 #include "terminal.h"
 #include "idt.h"
 #include "pic.h"
@@ -9,6 +10,7 @@
 #include "paging.h"
 #include "pmm.h"
 #include "kheap.h"
+#include "task.h"
 
 void main(){
     terminal_initialize();
@@ -23,6 +25,7 @@ void main(){
 
     init_paging();
     init_kheap();
+    init_multitasking();
     __asm__ volatile("sti");
     // terminal_writestring("waiting 3 secs...");
     // sleep_ms(3000);

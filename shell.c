@@ -6,7 +6,7 @@
 #include "ports.h"
 #include "mem.h"
 #include "pmm.h"
-#include <stdint.h>
+#include "task.h"
 
 void shell_init(void){
     terminal_writestring("\nType 'help' to see available commands.\n");
@@ -19,7 +19,8 @@ static void cmd_help(void){
     terminal_writestring("  clear     - Clear the screen\n");
     terminal_writestring("  uptime    - Show system uptime in seconds\n");
     terminal_writestring("  pmm       - Test Bitmap Page allocator & freeing\n");
-    terminal_writestring("  kheap      - Test dynamic heap (splitting, kfree and coalescing)\n");
+    terminal_writestring("  kheap     - Test dynamic heap (splitting, kfree and coalescing)\n");
+    terminal_writestring("  tasks     - Run 2 cooperative tasks yielding to each other\n");
     terminal_writestring("  pagefault - Trigger a CPU Page Fault Exception\n");
     terminal_writestring("  panic     - Trigger a Kernel Panic (Interrupt 0)\n");
     terminal_writestring("  reboot    - Restart the computer\n");
@@ -151,6 +152,33 @@ static void cmd_kheap(void){
     terminal_writestring("cleaned up all the blocks with kfree() successfully!\n");
 }
 
+static void task_a(void){
+    for(int i=0; i<3; i++){
+        terminal_writestring("[task A] running... yielding CPU!\n");
+        yield();
+    }
+    terminal_writestring("[task A] finished!\n");
+    for(;;) yield();
+}
+
+static void task_b(void){
+    for(int i=0; i<3; i++){
+        terminal_writestring("[task B] running... yielding CPU!\n");
+        yield();
+    }
+    terminal_writestring("[task B] finished!\n");
+    for(;;) yield();
+}
+
+static void cmd_tasks(void){
+    terminal_writestring("Creating task A and task B...\n");
+    create_task(task_a);
+    create_task(task_b);
+
+    for(int i=0; i<8; i++) yield();
+    terminal_writestring("returned back to shell!\n");
+}
+
 void shell_input(char* input){
     if(strlen(input)==0){
         terminal_writestring("neocipher27@prismOS ~$ ");
@@ -163,6 +191,7 @@ void shell_input(char* input){
     else if(strcmp(input, "pagefault")==0) cmd_pagefault();
     else if(strcmp(input, "pmm")==0) cmd_pmm();
     else if(strcmp(input, "kheap")==0) cmd_kheap();
+    else if(strcmp(input, "tasks")==0) cmd_tasks();
     else if(strcmp(input, "reboot")==0) cmd_reboot();
     else if(strcmp(input, "panic")==0) __asm__ volatile ("int $0");
     else{
