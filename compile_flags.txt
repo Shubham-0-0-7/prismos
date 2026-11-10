@@ -1,0 +1,3 @@
+-I.
+-ffreestanding
+--target=i686-elf
