@@ -1,11 +1,13 @@
-#include "task.h"
-#include "kheap.h"
-#include "terminal.h"
+#include "sched/task.h"
+#include "memory/kheap.h"
+#include "drivers/terminal.h"
 
 extern void switch_task(uint32_t* old_esp, uint32_t new_esp);
 
 static task_t* current_task = 0;
 static task_t* task_list = 0;
+
+static int preemption_enabled = 0;
 
 void init_multitasking(void){
     current_task = (task_t*)kmalloc_dyn(sizeof(task_t));
@@ -47,4 +49,12 @@ void yield(void){
     current_task = current_task->next;
 
     switch_task(&last_task->esp, current_task->esp);
+}
+
+void enable_preemption(void){
+    preemption_enabled = 1;
+}
+
+void disable_preemption(void){
+    preemption_enabled = 0;
 }

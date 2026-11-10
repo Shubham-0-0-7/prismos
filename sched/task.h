@@ -13,4 +13,7 @@ void init_multitasking(void);
 void create_task(void (*entry_point)(void));
 void yield(void);
 
+void enable_preemption(void);
+void disable_preemption(void);
+
 #endif

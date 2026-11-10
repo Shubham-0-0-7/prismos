@@ -1,8 +1,8 @@
-#include "keyboard.h"
-#include "ports.h"
-#include "isr.h"
-#include "terminal.h"
-#include "shell.h"
+#include "drivers/keyboard.h"
+#include "cpu/ports.h"
+#include "cpu/isr.h"
+#include "drivers/terminal.h"
+#include "shell/shell.h"
 
 static char key_buf[256];
 static int buf_idx = 0;

@@ -1,13 +1,14 @@
-#include "terminal.h"
-#include "timer.h"
-#include "isr.h"
-#include "ports.h"
+#include "sched/task.h"
+#include "drivers/timer.h"
+#include "cpu/isr.h"
+#include "cpu/ports.h"
 
 static uint32_t ticks = 0;
 static uint32_t timer_freq = 100;
 
 static void timer_callback(registers_t regs){
     ticks++;
+    if(ticks%5==0) yield();
 }
 
 void init_timer(uint32_t frequency){

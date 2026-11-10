@@ -1,12 +1,12 @@
-#include "shell.h"
-#include "kheap.h"
-#include "string.h"
-#include "terminal.h"
-#include "timer.h"
-#include "ports.h"
-#include "mem.h"
-#include "pmm.h"
-#include "task.h"
+#include "shell/shell.h"
+#include "memory/kheap.h"
+#include "lib/string.h"
+#include "drivers/terminal.h"
+#include "drivers/timer.h"
+#include "cpu/ports.h"
+#include "memory/mem.h"
+#include "memory/pmm.h"
+#include "sched/task.h"
 
 void shell_init(void){
     terminal_writestring("\nType 'help' to see available commands.\n");
@@ -21,6 +21,7 @@ static void cmd_help(void){
     terminal_writestring("  pmm       - Test Bitmap Page allocator & freeing\n");
     terminal_writestring("  kheap     - Test dynamic heap (splitting, kfree and coalescing)\n");
     terminal_writestring("  tasks     - Run 2 cooperative tasks yielding to each other\n");
+    terminal_writestring("  preempt   - Test preemptive multitasking (task with no yield)\n");
     terminal_writestring("  pagefault - Trigger a CPU Page Fault Exception\n");
     terminal_writestring("  panic     - Trigger a Kernel Panic (Interrupt 0)\n");
     terminal_writestring("  reboot    - Restart the computer\n");
@@ -179,6 +180,38 @@ static void cmd_tasks(void){
     terminal_writestring("returned back to shell!\n");
 }
 
+static volatile int preempt_cnt = 0;
+
+static void preempt_task_a(void){
+    while(1){
+        terminal_writestring("A");
+        preempt_cnt++;
+        for(volatile int i=0; i<2000000; i++);
+    }
+}
+
+static void preempt_task_b(void){
+    while(1){
+        terminal_writestring("B");
+        preempt_cnt++;
+        for(volatile int i=0; i<2000000; i++);
+    }
+}
+
+static void cmd_preempt(void){
+    terminal_writestring("starting preemptive tasks A and B with no yield calls..\n");
+    create_task(preempt_task_a);
+    create_task(preempt_task_b);
+
+    enable_preemption();
+
+    while(preempt_cnt < 40){
+        __asm__ volatile ("hlt");
+    }
+    disable_preemption();
+    terminal_writestring("\nPreemption test complete... both tasks shared cpu automatically!\n");
+}
+
 void shell_input(char* input){
     if(strlen(input)==0){
         terminal_writestring("neocipher27@prismOS ~$ ");
@@ -192,6 +225,7 @@ void shell_input(char* input){
     else if(strcmp(input, "pmm")==0) cmd_pmm();
     else if(strcmp(input, "kheap")==0) cmd_kheap();
     else if(strcmp(input, "tasks")==0) cmd_tasks();
+    else if(strcmp(input, "preempt")==0) cmd_preempt();
     else if(strcmp(input, "reboot")==0) cmd_reboot();
     else if(strcmp(input, "panic")==0) __asm__ volatile ("int $0");
     else{

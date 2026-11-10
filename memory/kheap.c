@@ -1,5 +1,5 @@
-#include "kheap.h"
-#include "terminal.h"
+#include "memory/kheap.h"
+#include "drivers/terminal.h"
 
 typedef struct header{
     size_t size;

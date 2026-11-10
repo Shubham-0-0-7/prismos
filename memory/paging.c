@@ -1,8 +1,8 @@
-#include "paging.h"
-#include "isr.h"
-#include "mem.h"
-#include "terminal.h"
-#include "string.h"
+#include "memory/paging.h"
+#include "cpu/isr.h"
+#include "memory/mem.h"
+#include "drivers/terminal.h"
+#include "lib/string.h"
 
 static uint32_t* page_directory=0;
 static uint32_t* first_page_table=0;

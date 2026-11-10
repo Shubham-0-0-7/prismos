@@ -1,6 +1,6 @@
-#include "pmm.h"
-#include "mem.h"
-#include "terminal.h"
+#include "memory/pmm.h"
+#include "memory/mem.h"
+#include "drivers/terminal.h"
 #include <stdint.h>
 
 static uint32_t* pmm_bitmap = 0;

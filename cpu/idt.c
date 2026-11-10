@@ -1,4 +1,4 @@
-#include "idt.h"
+#include "cpu/idt.h"
 
 idt_entry_t idt[256];
 idt_ptr_t idt_ptr;

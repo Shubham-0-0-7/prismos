@@ -1,5 +1,20 @@
 # my-os
 
+## layout
+
+```
+boot/     16-bit bootloader: disk load, GDT, switch to protected mode
+kernel/   kernel entry stub + main()
+cpu/      IDT, ISR/IRQ stubs, PIC, port I/O
+drivers/  VGA text terminal, PS/2 keyboard, PIT timer
+memory/   bump allocator, physical page bitmap, paging, kernel heap
+sched/    tasks + context switch
+lib/      string helpers
+shell/    built-in shell commands
+```
+
+`make` builds into `build/`, `make run` boots it in QEMU.
+
 ## status 6 september 2026   
 
 <img width="472" height="344" alt="image" src="https://github.com/user-attachments/assets/db36423c-7594-400c-bffb-d894b04cbe6e" />

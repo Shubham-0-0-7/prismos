@@ -1,73 +1,61 @@
 CC = i686-elf-gcc
 LD = i686-elf-ld
-CFLAGS = -ffreestanding -c
-all: os-image.bin
-run: os-image.bin
-	qemu-system-x86_64 -drive file=os-image.bin,format=raw,index=0,media=disk
+AS = nasm
+CFLAGS = -ffreestanding -I. -MMD -MP -c
 
-os-image.bin: main.bin kernel.bin
-	cat main.bin kernel.bin > os-image.bin
-	truncate -s 1474560 os-image.bin
+BUILD = build
 
-main.bin: main.asm print.asm print-hex.asm disk.asm gdt-32bit.asm switch.asm print-32bit.asm
-	nasm -f bin main.asm -o main.bin
+# kernel_entry must stay first: the bootloader jumps to the start of kernel.bin
+KERNEL_OBJS = \
+	kernel/kernel_entry.o \
+	kernel/kernel.o \
+	drivers/terminal.o \
+	cpu/ports.o \
+	cpu/idt.o \
+	cpu/isr.o \
+	cpu/interrupt.o \
+	cpu/pic.o \
+	drivers/keyboard.o \
+	drivers/timer.o \
+	memory/mem.o \
+	lib/string.o \
+	shell/shell.o \
+	memory/paging.o \
+	memory/pmm.o \
+	memory/kheap.o \
+	sched/task.o \
+	sched/task_switch.o
 
-kernel_entry.o: kernel_entry.asm
-	nasm -f elf32 $< -o $@
+OBJS = $(addprefix $(BUILD)/,$(KERNEL_OBJS))
+BOOT_SRCS = $(wildcard boot/*.asm)
 
-kernel.o: kernel.c
-	$(CC) $(CFLAGS) $< -o $@
+all: $(BUILD)/os-image.bin
 
-kernel.bin: kernel_entry.o kernel.o terminal.o ports.o idt.o isr.o interrupt.o pic.o keyboard.o timer.o mem.o string.o shell.o paging.o pmm.o kheap.o task.o task_switch.o
+run: $(BUILD)/os-image.bin
+	qemu-system-x86_64 -drive file=$<,format=raw,index=0,media=disk
+
+$(BUILD)/os-image.bin: $(BUILD)/main.bin $(BUILD)/kernel.bin
+	cat $^ > $@
+	truncate -s 1474560 $@
+
+$(BUILD)/main.bin: $(BOOT_SRCS)
+	@mkdir -p $(dir $@)
+	$(AS) -f bin -i boot/ boot/main.asm -o $@
+
+$(BUILD)/kernel.bin: $(OBJS)
 	$(LD) -o $@ -Ttext 0x1000 $^ --oformat binary
 
-task.o: task.c
+$(BUILD)/%.o: %.c
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< -o $@
 
-task_switch.o: task_switch.asm
-	nasm -f elf32 $< -o $@
-	
-kheap.o: kheap.c
-	$(CC) $(CFLAGS) $< -o $@
-
-pmm.o: pmm.c
-	$(CC) $(CFLAGS) $< -o $@
-
-paging.o: paging.c
-	$(CC) $(CFLAGS) $< -o $@
-
-timer.o: timer.c
-	$(CC) $(CFLAGS) $< -o $@
-
-pic.o: pic.c
-	$(CC) $(CFLAGS) $< -o $@
-
-keyboard.o: keyboard.c
-	$(CC) $(CFLAGS) $< -o $@
-
-idt.o: idt.c
-	$(CC) $(CFLAGS) $< -o $@
-
-isr.o: isr.c
-	$(CC) $(CFLAGS) $< -o $@
-
-interrupt.o: interrupt.asm
-	nasm -f elf32 $< -o $@
-
-terminal.o: terminal.c
-	$(CC) $(CFLAGS) $< -o $@
-
-ports.o: ports.asm
-	nasm -f elf32 $< -o $@
-
-mem.o: mem.c
-	$(CC) $(CFLAGS) $< -o $@
-
-string.o: string.c
-	$(CC) $(CFLAGS) $< -o $@
-
-shell.o: shell.c
-	$(CC) $(CFLAGS) $< -o $@
+$(BUILD)/%.o: %.asm
+	@mkdir -p $(dir $@)
+	$(AS) -f elf32 $< -o $@
 
 clean:
-	rm -rf *.bin *.o os-image.bin
+	rm -rf $(BUILD)
+
+.PHONY: all run clean
+
+-include $(OBJS:.o=.d)

@@ -1,6 +1,6 @@
-#include "isr.h"
-#include "pic.h"
-#include "terminal.h"
+#include "cpu/isr.h"
+#include "cpu/pic.h"
+#include "drivers/terminal.h"
 
 isr_t interrupt_handlers[256];
 
